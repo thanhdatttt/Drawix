@@ -8,8 +8,7 @@ class Line extends Shape {
     required super.endPoint,
     required super.strokeColor,
     required super.strokeWidth,
-    super.fillColor
-  });
+  }) : super(fillColor: null);
 
   @override
   void draw(Canvas canvas) {

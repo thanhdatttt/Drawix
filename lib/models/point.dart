@@ -6,11 +6,9 @@ import 'package:drawix_app/models/shape.dart';
 class Point extends Shape {
   Point({
     required super.startPoint,
-    required super.endPoint,
     required super.strokeColor,
     required super.strokeWidth,
-    super.fillColor,
-  });
+  }) : super(endPoint: startPoint, fillColor: null);
 
   @override
   void draw(Canvas canvas) {
