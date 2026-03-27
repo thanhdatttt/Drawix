@@ -23,6 +23,7 @@ class DrawProvider extends ChangeNotifier {
   // toolbox getters
   ShapeType get selectedType => _selectedType;
   Color get selectedColor => _selectedColor;
+  Color? get selectedFillColor => _selectedFillColor;
   double get strokeWidth => _strokeWidth;
 
   // toolbox setters
@@ -32,6 +33,10 @@ class DrawProvider extends ChangeNotifier {
   }
   void setSelectedColor(Color color) {
     _selectedColor = color;
+    notifyListeners();
+  }
+  void setSelectedFillColor(Color? color) {
+    _selectedFillColor = color;
     notifyListeners();
   }
   void setStrokeWidth(double width) {

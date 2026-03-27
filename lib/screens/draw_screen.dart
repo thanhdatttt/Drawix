@@ -4,42 +4,39 @@ import 'package:drawix_app/providers/draw_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// Shared palette used for both stroke and fill pickers.
+const List<Color> _kPalette = [
+  Colors.white,
+  Colors.teal,
+  Colors.tealAccent,
+  Colors.redAccent,
+  Colors.pinkAccent,
+  Colors.amber,
+  Colors.orangeAccent,
+  Colors.lightBlueAccent,
+  Colors.purpleAccent,
+  Colors.greenAccent,
+  Colors.limeAccent,
+  Colors.deepOrangeAccent,
+];
+
+const Map<int, String> _kColorNames = {
+  0xFFFFFFFF: 'White',
+  0xFF009688: 'Teal',
+  0xFF64FFDA: 'Teal Accent',
+  0xFFFF5252: 'Red',
+  0xFFFF4081: 'Pink',
+  0xFFFFC107: 'Amber',
+  0xFFFFAB40: 'Orange',
+  0xFF40C4FF: 'Light Blue',
+  0xFFE040FB: 'Purple',
+  0xFF69FF47: 'Green',
+  0xFFEEFF41: 'Lime',
+  0xFFFF6E40: 'Deep Orange',
+};
+
 class DrawScreen extends StatelessWidget {
   const DrawScreen({super.key});
-
-  // color names
-  String _colorName(Color color) {
-    const names = {
-      0xFFFFFFFF: 'White',
-      0xFF009688: 'Teal',
-      0xFF64FFDA: 'Teal Accent',
-      0xFFFF5252: 'Red',
-      0xFFFF4081: 'Pink',
-      0xFFFFC107: 'Amber',
-      0xFFFFAB40: 'Orange',
-      0xFF40C4FF: 'Light Blue',
-      0xFFE040FB: 'Purple',
-      0xFF69FF47: 'Green',
-      0xFFEEFF41: 'Lime',
-      0xFFFF6E40: 'Deep Orange',
-    };
-    return names[color.toARGB32()] ?? 'Color';
-  }
-
-  static const colors = [
-      Colors.white,
-      Colors.teal,
-      Colors.tealAccent,
-      Colors.redAccent,
-      Colors.pinkAccent,
-      Colors.amber,
-      Colors.orangeAccent,
-      Colors.lightBlueAccent,
-      Colors.purpleAccent,
-      Colors.greenAccent,
-      Colors.limeAccent,
-      Colors.deepOrangeAccent,
-    ];
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +50,9 @@ class DrawScreen extends StatelessWidget {
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onPanStart: (details) => provider.startDrawing(details.localPosition),
-              onPanUpdate: (details) => provider.updateDrawing(details.localPosition),
-              onPanEnd: (details) => provider.endDrawing(),
+              onPanStart:  (d) => provider.startDrawing(d.localPosition),
+              onPanUpdate: (d) => provider.updateDrawing(d.localPosition),
+              onPanEnd:    (_) => provider.endDrawing(),
               child: CustomPaint(
                 size: Size.infinite,
                 painter: DrawPainter(
@@ -66,15 +63,15 @@ class DrawScreen extends StatelessWidget {
             ),
           ),
 
-          // tool bar
+          //toolbar
           Positioned(
             top: 40,
             left: 20,
             right: 20,
-            child: _buildToolbar(context, provider),
+            child: _buildToolbar(provider),
           ),
 
-          // stroke slider
+          // stroke width slider
           Positioned(
             bottom: 30,
             right: 20,
@@ -85,7 +82,8 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildToolbar(BuildContext context, DrawProvider provider) {
+  // toolbar ui
+  Widget _buildToolbar(DrawProvider provider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -97,32 +95,37 @@ class DrawScreen extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Shape tools
-            _toolIcon(provider, ShapeType.point,     Icons.circle,                 tooltip: 'Point'),
-            _toolIcon(provider, ShapeType.line,      Icons.horizontal_rule,        tooltip: 'Line'),
-            _toolIcon(provider, ShapeType.rectangle, Icons.rectangle_outlined,     tooltip: 'Rectangle'),
-            _toolIcon(provider, ShapeType.square,    Icons.square_outlined,        tooltip: 'Square'),
-            _toolIcon(provider, ShapeType.ellipse,   Icons.panorama_fish_eye,      tooltip: 'Ellipse'),
-            _toolIcon(provider, ShapeType.circle,    Icons.circle_outlined,        tooltip: 'Circle'),
+            // shape tools
+            _toolIcon(provider, ShapeType.point,     Icons.circle,                 'Point'),
+            _toolIcon(provider, ShapeType.line,      Icons.horizontal_rule,        'Line'),
+            _toolIcon(provider, ShapeType.rectangle, Icons.rectangle_outlined,     'Rectangle'),
+            _toolIcon(provider, ShapeType.square,    Icons.square_outlined,        'Square'),
+            _toolIcon(provider, ShapeType.ellipse,   Icons.panorama_fish_eye,      'Ellipse'),
+            _toolIcon(provider, ShapeType.circle,    Icons.circle_outlined,        'Circle'),
 
-            const SizedBox(width: 4),
-            const VerticalDivider(color: Colors.white24, width: 16, thickness: 1),
-            const SizedBox(width: 4),
+            _divider(),
 
-            // Colors
-            ...colors.map((color) => _colorPicker(provider, color)),
+            // stroke color picker
+            _sectionLabel(Icons.edit, 'Stroke'),
+            ..._kPalette.map((c) => _strokeSwatch(provider, c)),
 
-            const SizedBox(width: 4),
-            const VerticalDivider(color: Colors.white24, width: 16, thickness: 1),
-            const SizedBox(width: 4),
+            _divider(),
 
-            // Clear
+            //fill color picker
+            _sectionLabel(Icons.format_color_fill, 'Fill'),
+            _noFillSwatch(provider),
+            ..._kPalette.map((c) => _fillSwatch(provider, c)),
+
+            _divider(),
+
+            // clear canvas
             Tooltip(
               message: 'Clear canvas',
               child: IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.white70),
-                onPressed: () => provider.clearCanvas(),
+                onPressed: provider.clearCanvas,
               ),
             ),
           ],
@@ -131,7 +134,21 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
-  Widget _toolIcon(DrawProvider provider, ShapeType type, IconData icon, {String tooltip = ''}) {
+  // helpers
+  Widget _divider() => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    child: const VerticalDivider(color: Colors.white24, width: 16, thickness: 1),
+  );
+
+  Widget _sectionLabel(IconData icon, String label) => Tooltip(
+    message: label,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Icon(icon, size: 16, color: Colors.white38),
+    ),
+  );
+
+  Widget _toolIcon(DrawProvider provider, ShapeType type, IconData icon, String tooltip) {
     final isSelected = provider.selectedType == type;
     return Tooltip(
       message: tooltip,
@@ -142,14 +159,15 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
-  Widget _colorPicker(DrawProvider provider, Color color) {
+  /// round swatch ui for stroke color.
+  Widget _strokeSwatch(DrawProvider provider, Color color) {
     final isSelected = provider.selectedColor == color;
     return Tooltip(
-      message: _colorName(color),
+      message: _kColorNames[color.toARGB32()] ?? 'Color',
       child: GestureDetector(
         onTap: () => provider.setSelectedColor(color),
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+          margin: const EdgeInsets.symmetric(horizontal: 3),
           width: 22,
           height: 22,
           decoration: BoxDecoration(
@@ -164,6 +182,54 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
+  /// rounded-square swatch ui for fill color.
+  Widget _fillSwatch(DrawProvider provider, Color color) {
+    final isSelected = provider.selectedFillColor == color;
+    return Tooltip(
+      message: _kColorNames[color.toARGB32()] ?? 'Color',
+      child: GestureDetector(
+        onTap: () => provider.setSelectedFillColor(color),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(5),
+            border: isSelected
+                ? Border.all(color: Colors.white24, width: 4)
+                : Border.all(color: Colors.white, width: 1),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// no fill watch
+  Widget _noFillSwatch(DrawProvider provider) {
+    final isSelected = provider.selectedFillColor == null;
+    return Tooltip(
+      message: 'No fill',
+      child: GestureDetector(
+        onTap: () => provider.setSelectedFillColor(null),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(
+              color: isSelected ? Colors.white : Colors.white38,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // stroke width control ui
   Widget _buildStrokeControl(DrawProvider provider) {
     return Container(
       width: 200,
@@ -174,14 +240,14 @@ class DrawScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.line_weight, size: 18),
+          const Icon(Icons.line_weight, size: 18, color: Colors.white70),
           Expanded(
             child: Slider(
               value: provider.strokeWidth,
               min: 1,
               max: 20,
               activeColor: Colors.tealAccent,
-              onChanged: (val) => provider.setStrokeWidth(val),
+              onChanged: provider.setStrokeWidth,
             ),
           ),
         ],
