@@ -16,20 +16,24 @@ class DrawScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF121212),
       body: Stack(
         children: [
-          // canvas
-          GestureDetector(
-            onPanStart: (details) => provider.startDrawing(details.globalPosition),
-            onPanUpdate: (details) => provider.updateDrawing(details.globalPosition),
-            onPanEnd: (details) => provider.endDrawing(),
-            child: CustomPaint(
-              painter: DrawPainter(
-                shapes: provider.shapes,
-                currentShape: provider.currentShape
+          Positioned.fill(
+            child: 
+            // canvas
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onPanStart: (details) => provider.startDrawing(details.localPosition),
+              onPanUpdate: (details) => provider.updateDrawing(details.localPosition),
+              onPanEnd: (details) => provider.endDrawing(),
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: DrawPainter(
+                  shapes: provider.shapes,
+                  currentShape: provider.currentShape
+                ),
               ),
-              child: Container(color: Colors.transparent,),
             ),
           ),
-
+          
           // tool bar
           Positioned(
             top: 40,

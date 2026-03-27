@@ -16,7 +16,7 @@ class DrawProvider extends ChangeNotifier {
 
   // default toolbox
   ShapeType _selectedType = ShapeType.line;
-  Color _selectedColor = Colors.black;
+  Color _selectedColor = Colors.teal;
   Color? _selectedFillColor;
   double _strokeWidth = 2.0;
 
