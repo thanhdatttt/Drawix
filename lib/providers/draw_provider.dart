@@ -16,32 +16,31 @@ class DrawProvider extends ChangeNotifier {
 
   // default toolbox
   ShapeType _selectedType = ShapeType.line;
-  Color _selectedStrokeColor = Colors.black;
+  Color _selectedColor = Colors.black;
   Color? _selectedFillColor;
   double _strokeWidth = 2.0;
 
   // toolbox getters
   ShapeType get selectedType => _selectedType;
-  Color get selectedStrokeColor => _selectedStrokeColor;
+  Color get selectedColor => _selectedColor;
   double get strokeWidth => _strokeWidth;
 
   // toolbox setters
-  set selectedType(ShapeType type) {
+  void setSelectedType(ShapeType type) {
     _selectedType = type;
     notifyListeners();
   }
-  set selectedColor(Color color) {
-    _selectedStrokeColor = color;
+  void setSelectedColor(Color color) {
+    _selectedColor = color;
     notifyListeners();
   }
-  set strokeWidth(double width) {
+  void setStrokeWidth(double width) {
     _strokeWidth = width;
     notifyListeners();
   }
 
   // draw logic
   void startDrawing(Offset startPoint) {
-    // Factory Method
     _currentShape = _createShape(startPoint, startPoint);
     notifyListeners();
   }
@@ -64,17 +63,17 @@ class DrawProvider extends ChangeNotifier {
   Shape? _createShape(Offset startPoint, Offset endPoint) {
     switch (_selectedType) {
       case ShapeType.point:
-        return Point(startPoint: startPoint, strokeColor: _selectedStrokeColor, strokeWidth: _strokeWidth);
+        return Point(startPoint: startPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth);
       case ShapeType.line:
-        return Line(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedStrokeColor, strokeWidth: _strokeWidth);
+        return Line(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth);
       case ShapeType.square:
-        return Square(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedStrokeColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
+        return Square(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
       case ShapeType.rectangle:
-        return Rectangle(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedStrokeColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
+        return Rectangle(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
       case ShapeType.ellipse:
-        return Ellipse(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedStrokeColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
+        return Ellipse(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
       case ShapeType.circle:
-        return Circle(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedStrokeColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
+        return Circle(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
       }
   }
 

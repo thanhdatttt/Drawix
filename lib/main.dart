@@ -1,3 +1,4 @@
+import 'package:drawix_app/screens/draw_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/draw_provider.dart';
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Colors.teal,
         scaffoldBackgroundColor: const Color(0xFF121212),
       ),
+      home: const DrawScreen(),
     );
   }
 }
