@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:ui' as ui;
 import 'package:drawix_app/models/shape.dart';
@@ -13,11 +12,6 @@ class Point extends Shape {
   @override
   void draw(Canvas canvas) {
     canvas.drawPoints(ui.PointMode.points, [startPoint], strokePaint);
-  }
-
-  @override
-  ByteData serialize() {
-    return ByteData(0);
   }
 
   @override

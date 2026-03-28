@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:drawix_app/models/shape.dart';
 
@@ -33,12 +32,5 @@ class Circle extends Shape {
   }
 
   @override
-  ByteData serialize() {
-    return ByteData(0);
-  }
-
-  @override
   ShapeType get type => ShapeType.circle;
-
-  
 }

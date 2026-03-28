@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:drawix_app/models/shape.dart';
 
@@ -29,11 +28,6 @@ class Square extends Shape {
       canvas.drawRect(rect, fillPaint!);
     }
     canvas.drawRect(rect, strokePaint);
-  }
-
-  @override
-  ByteData serialize() {
-    return ByteData(0);
   }
 
   @override

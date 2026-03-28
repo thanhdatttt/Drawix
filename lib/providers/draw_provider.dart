@@ -1,9 +1,11 @@
+import 'dart:typed_data';
 import 'package:drawix_app/models/circle.dart';
 import 'package:drawix_app/models/ellipse.dart';
 import 'package:drawix_app/models/line.dart';
 import 'package:drawix_app/models/rectangle.dart';
 import 'package:drawix_app/models/shape.dart';
 import 'package:drawix_app/models/square.dart';
+import 'package:drawix_app/utils/draw_serializer.dart';
 import 'package:flutter/material.dart';
 import '../models/point.dart';
 
@@ -82,8 +84,18 @@ class DrawProvider extends ChangeNotifier {
       }
   }
 
+  // clear canvas
   void clearCanvas() {
     _shapes.clear();
+    notifyListeners();
+  }
+
+  // load drawing
+  void loadDrawing(Uint8List bytes) {
+    final loaded = DrawSerializer.decode(bytes);
+    _shapes.clear();
+    _shapes.addAll(loaded);
+    _currentShape = null;
     notifyListeners();
   }
 }
