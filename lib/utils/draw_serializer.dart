@@ -104,8 +104,6 @@ class DrawSerializer {
       for (int i = 0; i < Shape.recordSize; i++) {
         buf.setUint8(o++, record.getUint8(i));
       }
-
-      o += Shape.recordSize;
     }
 
     return buf.buffer.asUint8List();

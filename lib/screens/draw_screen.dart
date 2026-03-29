@@ -1,16 +1,22 @@
+import 'dart:io';
 import 'package:drawix_app/models/shape.dart';
 import 'package:drawix_app/painters/draw_painter.dart';
 import 'package:drawix_app/providers/draw_provider.dart';
 import 'package:drawix_app/utils/draw_serializer.dart';
-import 'package:drawix_app/utils/Io/file_io.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// Web-only import — conditionally compiled so mobile/desktop never see dart:html.
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html show AnchorElement, Blob, Url;
+
 const List<Color> _kPalette = [
-  Colors.white,       Colors.teal,       Colors.tealAccent,
-  Colors.redAccent,   Colors.pinkAccent, Colors.amber,
-  Colors.orangeAccent,Colors.lightBlueAccent, Colors.purpleAccent,
-  Colors.greenAccent, Colors.limeAccent, Colors.deepOrangeAccent,
+  Colors.white,        Colors.teal,           Colors.tealAccent,
+  Colors.redAccent,    Colors.pinkAccent,      Colors.amber,
+  Colors.orangeAccent, Colors.lightBlueAccent, Colors.purpleAccent,
+  Colors.greenAccent,  Colors.limeAccent,      Colors.deepOrangeAccent,
 ];
 
 const Map<int, String> _kColorNames = {
@@ -19,6 +25,101 @@ const Map<int, String> _kColorNames = {
   0xFFFFAB40: 'Orange',   0xFF40C4FF: 'Light Blue',  0xFFE040FB: 'Purple',
   0xFF69FF47: 'Green',    0xFFEEFF41: 'Lime',        0xFFFF6E40: 'Deep Orange',
 };
+
+Future<void> _saveDrawing(BuildContext context, DrawProvider provider) async {
+  if (provider.shapes.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Nothing to save — canvas is empty.')),
+    );
+    return;
+  }
+
+  final bytes = DrawSerializer.encode(provider.shapes);
+
+  try {
+    if (kIsWeb) {
+      // Web: trigger a browser download via a hidden <a> element.
+      final blob = html.Blob([bytes]);
+      final url  = html.Url.createObjectUrlFromBlob(blob);
+      html.AnchorElement(href: url)
+        ..setAttribute('download', 'drawing.drwx')
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } else {
+      // Desktop (Windows / macOS / Linux): show native Save-As dialog.
+      // Mobile (iOS / Android): saveFile is not supported by file_picker;
+      // fall back to writing to the app documents directory.
+      final String? path = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Drawing',
+        fileName:    'drawing.drwx',
+        // `bytes` is ignored on desktop but required on web (handled above).
+      );
+
+      if (path != null) {
+        await File(path).writeAsBytes(bytes);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Saved to $path')),
+          );
+        }
+      }
+      // path == null means the user cancelled — do nothing.
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Save failed: $e')),
+      );
+    }
+  }
+}
+
+Future<void> _openDrawing(BuildContext context, DrawProvider provider) async {
+  try {
+    final result = await FilePicker.platform.pickFiles(
+      dialogTitle:        'Open Drawing',
+      type:               FileType.custom,
+      allowedExtensions:  ['drwx'],
+      withData:           true,   // always load bytes (required for web)
+    );
+
+    if (result == null) return; // user cancelled
+
+    final fileBytes = result.files.single.bytes;
+    if (fileBytes == null) {
+      // On desktop, file_picker may return a path instead of bytes.
+      final filePath = result.files.single.path;
+      if (filePath == null) throw Exception('Could not read file data.');
+      final diskBytes = await File(filePath).readAsBytes();
+      provider.loadDrawing(diskBytes);
+    } else {
+      provider.loadDrawing(fileBytes);
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Opened "${result.files.single.name}" '
+            '(${provider.shapes.length} shapes)',
+          ),
+        ),
+      );
+    }
+  } on FormatException catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid .drwx file: ${e.message}')),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Open failed: $e')),
+      );
+    }
+  }
+}
 
 class DrawScreen extends StatelessWidget {
   const DrawScreen({super.key});
@@ -41,7 +142,7 @@ class DrawScreen extends StatelessWidget {
               child: CustomPaint(
                 size: Size.infinite,
                 painter: DrawPainter(
-                  shapes: provider.shapes,
+                  shapes:       provider.shapes,
                   currentShape: provider.currentShape,
                 ),
               ),
@@ -50,16 +151,13 @@ class DrawScreen extends StatelessWidget {
 
           // toolbars
           Positioned(
-            top: 40,
-            left: 20,
-            right: 20,
+            top: 40, left: 20, right: 20,
             child: _buildToolbar(context, provider),
           ),
 
           // stroke width control
           Positioned(
-            bottom: 30,
-            right: 20,
+            bottom: 30, right: 20,
             child: _buildStrokeControl(provider),
           ),
         ],
@@ -83,12 +181,12 @@ class DrawScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // shape tools
-            _toolIcon(provider, ShapeType.point,     Icons.circle,                 'Point'),
-            _toolIcon(provider, ShapeType.line,      Icons.horizontal_rule,        'Line'),
-            _toolIcon(provider, ShapeType.rectangle, Icons.rectangle_outlined,     'Rectangle'),
-            _toolIcon(provider, ShapeType.square,    Icons.square_outlined,        'Square'),
-            _toolIcon(provider, ShapeType.ellipse,   Icons.panorama_fish_eye,      'Ellipse'),
-            _toolIcon(provider, ShapeType.circle,    Icons.circle_outlined,        'Circle'),
+            _toolIcon(provider, ShapeType.point,     Icons.circle,             'Point'),
+            _toolIcon(provider, ShapeType.line,      Icons.horizontal_rule,    'Line'),
+            _toolIcon(provider, ShapeType.rectangle, Icons.rectangle_outlined,  'Rectangle'),
+            _toolIcon(provider, ShapeType.square,    Icons.square_outlined,     'Square'),
+            _toolIcon(provider, ShapeType.ellipse,   Icons.panorama_fish_eye,   'Ellipse'),
+            _toolIcon(provider, ShapeType.circle,    Icons.circle_outlined,     'Circle'),
 
             _divider(),
 
@@ -105,16 +203,17 @@ class DrawScreen extends StatelessWidget {
 
             _divider(),
 
-            // file controls
+            // ── Save button ──────────────────────────────────────────────
             _fileButton(
-              icon: Icons.save_outlined,
+              icon:    Icons.save_outlined,
               tooltip: 'Save drawing (.drwx)',
-              onTap: () => _save(context, provider),
+              onTap:   () => _saveDrawing(context, provider),
             ),
+            // ── Open button ──────────────────────────────────────────────
             _fileButton(
-              icon: Icons.folder_open_outlined,
+              icon:    Icons.folder_open_outlined,
               tooltip: 'Open drawing (.drwx)',
-              onTap: () => _open(context, provider),
+              onTap:   () => _openDrawing(context, provider),
             ),
 
             _divider(),
@@ -129,47 +228,6 @@ class DrawScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // file handler
-
-  void _save(BuildContext context, DrawProvider provider) async {
-    try {
-      final bytes = DrawSerializer.encode(provider.shapes);
-      final path  = await FileIo.save(bytes);
-      final msg   = path != null ? 'Saved to $path' : 'Drawing saved as drawing.drwx';
-      _snack(context, msg, Icons.check_circle_outline);
-    } catch (e) {
-      _snack(context, 'Save failed: \$e', Icons.error_outline, isError: true);
-    }
-  }
-
-  void _open(BuildContext context, DrawProvider provider) async {
-    try {
-      final bytes = await FileIo.open();
-      if (bytes == null) return; // user cancelled
-      provider.loadDrawing(bytes);
-      _snack(context, 'Drawing loaded (${provider.shapes.length} shapes)', Icons.check_circle_outline);
-    } on FormatException catch (e) {
-      _snack(context, e.message, Icons.error_outline, isError: true);
-    } catch (e) {
-      _snack(context, 'Open failed: $e', Icons.error_outline, isError: true);
-    }
-  }
-
-  void _snack(BuildContext context, String msg, IconData icon, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(children: [
-          Icon(icon, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Expanded(child: Text(msg)),
-        ]),
-        backgroundColor: isError ? Colors.red[800] : const Color(0xFF2E7D32),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -199,7 +257,6 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
-  // stroke color ui
   Widget _strokeSwatch(DrawProvider provider, Color color) {
     final isSelected = provider.selectedColor == color;
     return Tooltip(
@@ -221,7 +278,6 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
-  // fill color ui
   Widget _fillSwatch(DrawProvider provider, Color color) {
     final isSelected = provider.selectedFillColor == color;
     return Tooltip(
@@ -243,7 +299,6 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
-  // no fill color ui
   Widget _noFillSwatch(DrawProvider provider) {
     final isSelected = provider.selectedFillColor == null;
     return Tooltip(
@@ -267,8 +322,11 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
-  // file button ui
-  Widget _fileButton({required IconData icon, required String tooltip, required VoidCallback onTap}) {
+  Widget _fileButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
     return Tooltip(
       message: tooltip,
       child: IconButton(
@@ -278,7 +336,6 @@ class DrawScreen extends StatelessWidget {
     );
   }
 
-  // stroke width control ui
   Widget _buildStrokeControl(DrawProvider provider) {
     return Container(
       width: 200,
@@ -292,10 +349,10 @@ class DrawScreen extends StatelessWidget {
           const Icon(Icons.line_weight, size: 18, color: Colors.white70),
           Expanded(
             child: Slider(
-              value: provider.strokeWidth,
+              value:       provider.strokeWidth,
               min: 1, max: 20,
               activeColor: Colors.tealAccent,
-              onChanged: provider.setStrokeWidth,
+              onChanged:   provider.setStrokeWidth,
             ),
           ),
         ],
@@ -304,7 +361,6 @@ class DrawScreen extends StatelessWidget {
   }
 }
 
-// draw a red cross to indicate no fill.
 class _CrossPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
