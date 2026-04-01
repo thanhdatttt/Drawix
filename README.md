@@ -10,9 +10,9 @@ The application supports drawing, coloring, customizing outlines, saving/loading
 
 |  | Fullname | Student ID | Responsibilities |
 |-----|-----------|------|---------|
-| 1 | Tran Khon Chi | 23127 | Leader / UI Development |
+| 1 | Tran Khon Chi | 23127032 | Leader / UI Development |
 | 2 | Pham Thanh Dat | 23127170 | Drawing Engine |
-| 3 | Mai Xuan Hung | 23127 | File Handling |
+| 3 | Mai Xuan Hung | 23127372 | File Handling |
 | 4 | Nguyen Van Minh | 23127422 | Encrypting and decrypting |
 | 5 | Giao Thai Bao | 23127526 | Testing & Documentation |
 
