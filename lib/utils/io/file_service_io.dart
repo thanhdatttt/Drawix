@@ -11,6 +11,7 @@ Future<String> saveToPath(Uint8List bytes, String path) async {
   return path;
 }
 
+// save file
 Future<String?> saveFile(Uint8List bytes, {String defaultName = 'drawing.drwx'}) async {
   final bool isDesktop = defaultTargetPlatform == TargetPlatform.macOS ||
       defaultTargetPlatform == TargetPlatform.windows ||
@@ -35,6 +36,7 @@ Future<String?> saveFile(Uint8List bytes, {String defaultName = 'drawing.drwx'})
   }
 }
 
+// open file
 Future<({Uint8List bytes, String? path})?> openFile() async {
   final result = await FilePicker.platform.pickFiles(
     dialogTitle: 'Open drawing',

@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:drawix_app/models/circle.dart';
 import 'package:drawix_app/models/ellipse.dart';
 import 'package:drawix_app/models/line.dart';
@@ -6,6 +7,7 @@ import 'package:drawix_app/models/rectangle.dart';
 import 'package:drawix_app/models/shape.dart';
 import 'package:drawix_app/models/square.dart';
 import 'package:drawix_app/utils/draw_serializer.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import '../models/point.dart';
 
@@ -97,7 +99,7 @@ class DrawProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // set which file is current.
+  // set which file is current
   void setCurrentFilePath(String? path) {
     if (_currentFilePath == path) return;
     _currentFilePath = path;
@@ -112,5 +114,37 @@ class DrawProvider extends ChangeNotifier {
     _currentShape = null;
     _currentFilePath = filePath;
     notifyListeners();
+  }
+
+  // export drawing to png
+  Future<void> exportPNG(Size canvasSize) async {
+    if (_shapes.isEmpty) return;
+    
+    // init picture recorder
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, canvasSize.width, canvasSize.height));
+
+    // draw background and shapes
+    final bgPaint = Paint()..color = const Color(0xFF121212);
+    canvas.drawRect(Rect.fromLTWH(0, 0, canvasSize.width, canvasSize.height), bgPaint);
+    for (var shape in _shapes) {
+      shape.draw(canvas);
+    }
+
+    // end draw
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(canvasSize.width.toInt(), canvasSize.height.toInt());
+
+    // encode to byte and save png
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final Uint8List? pngBytes = byteData?.buffer.asUint8List();
+    if (pngBytes != null) {
+      await FileSaver.instance.saveFile(
+        name: 'Drawix_${DateTime.now().millisecondsSinceEpoch}',
+        bytes: pngBytes,
+        fileExtension: 'png',
+        mimeType: MimeType.png,
+      );
+    }
   }
 }

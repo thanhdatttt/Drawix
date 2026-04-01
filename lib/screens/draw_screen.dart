@@ -23,7 +23,7 @@ const Map<int, String> _kColorNames = {
 class DrawScreen extends StatelessWidget {
   const DrawScreen({super.key});
 
-  
+  // save and open file handler
   Future<void> _save(BuildContext context, DrawProvider provider) async {
     if (provider.shapes.isEmpty) {
       _snack(context, 'Nothing to save — canvas is empty.');
@@ -54,6 +54,7 @@ class DrawScreen extends StatelessWidget {
       if (context.mounted) _snack(context, 'Save failed: $e', error: true);
     }
   }
+
   Future<void> _open(BuildContext context, DrawProvider provider) async {
     try {
       final result = await FileService.open();
@@ -69,6 +70,11 @@ class DrawScreen extends StatelessWidget {
     } catch (e) {
       if (context.mounted) _snack(context, 'Open failed: $e', error: true);
     }
+  }
+
+  Future<void> _exportPNG(BuildContext context,DrawProvider provider) async {
+    final size = MediaQuery.of(context).size; 
+    provider.exportPNG(size);
   }
 
   @override
@@ -163,6 +169,17 @@ class DrawScreen extends StatelessWidget {
               icon: Icons.folder_open_outlined,
               tooltip: 'Open drawing (.drwx)',
               onTap: () => _open(context, provider),
+            ),
+
+            _divider(),
+
+            // export png
+            Tooltip(
+              message: "Export to PNG",
+              child: IconButton(
+                icon: const Icon(Icons.image, color: Colors.white70),
+                onPressed: () => _exportPNG(context, provider),
+              ),
             ),
 
             _divider(),

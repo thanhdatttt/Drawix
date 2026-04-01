@@ -15,6 +15,7 @@ class DrawSerializer {
   static const int _version = 2;
   static const int _headerSize = 9; 
 
+  // decode specific shape
   static Shape _decodeShape(ByteData bd, int offset) {
     int o = offset;
 
@@ -138,6 +139,7 @@ class DrawSerializer {
           'File is truncated: expected $expectedSize bytes, got ${bytes.length}.');
     }
 
+    // decode shapes
     final shapes = <Shape>[];
     for (int i = 0; i < count; i++) {
       shapes.add(_decodeShape(bd, _headerSize + i * Shape.recordSize));
