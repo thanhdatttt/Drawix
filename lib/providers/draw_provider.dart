@@ -7,6 +7,7 @@ import 'package:drawix_app/models/rectangle.dart';
 import 'package:drawix_app/models/shape.dart';
 import 'package:drawix_app/models/square.dart';
 import 'package:drawix_app/utils/draw_serializer.dart';
+import 'package:drawix_app/utils/io/file_service.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import '../models/point.dart';
@@ -38,7 +39,7 @@ class DrawProvider extends ChangeNotifier {
     _selectedType = type;
     notifyListeners();
   }
-  
+
   void setSelectedColor(Color color) {
     _selectedColor = color;
     notifyListeners();
@@ -78,17 +79,50 @@ class DrawProvider extends ChangeNotifier {
   Shape? _createShape(Offset startPoint, Offset endPoint) {
     switch (_selectedType) {
       case ShapeType.point:
-        return Point(startPoint: startPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth);
+        return Point(
+          startPoint: startPoint,
+          strokeColor: _selectedColor,
+          strokeWidth: _strokeWidth,
+        );
       case ShapeType.line:
-        return Line(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth);
+        return Line(
+          startPoint: startPoint,
+          endPoint: endPoint,
+          strokeColor: _selectedColor,
+          strokeWidth: _strokeWidth,
+        );
       case ShapeType.square:
-        return Square(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
+        return Square(
+          startPoint: startPoint,
+          endPoint: endPoint,
+          strokeColor: _selectedColor,
+          strokeWidth: _strokeWidth,
+          fillColor: _selectedFillColor,
+        );
       case ShapeType.rectangle:
-        return Rectangle(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
+        return Rectangle(
+          startPoint: startPoint,
+          endPoint: endPoint,
+          strokeColor: _selectedColor,
+          strokeWidth: _strokeWidth,
+          fillColor: _selectedFillColor,
+        );
       case ShapeType.ellipse:
-        return Ellipse(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
+        return Ellipse(
+          startPoint: startPoint,
+          endPoint: endPoint,
+          strokeColor: _selectedColor,
+          strokeWidth: _strokeWidth,
+          fillColor: _selectedFillColor,
+        );
       case ShapeType.circle:
-        return Circle(startPoint: startPoint, endPoint: endPoint, strokeColor: _selectedColor, strokeWidth: _strokeWidth, fillColor: _selectedFillColor);
+        return Circle(
+          startPoint: startPoint,
+          endPoint: endPoint,
+          strokeColor: _selectedColor,
+          strokeWidth: _strokeWidth,
+          fillColor: _selectedFillColor,
+        );
     }
   }
 
@@ -119,31 +153,44 @@ class DrawProvider extends ChangeNotifier {
   // export drawing to png
   Future<void> exportPNG(Size canvasSize) async {
     if (_shapes.isEmpty) return;
-    
+
     // init picture recorder
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, canvasSize.width, canvasSize.height));
+    final canvas = Canvas(
+      recorder,
+      Rect.fromLTWH(0, 0, canvasSize.width, canvasSize.height),
+    );
 
     // draw background and shapes
     final bgPaint = Paint()..color = const Color(0xFF121212);
-    canvas.drawRect(Rect.fromLTWH(0, 0, canvasSize.width, canvasSize.height), bgPaint);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, canvasSize.width, canvasSize.height),
+      bgPaint,
+    );
     for (var shape in _shapes) {
       shape.draw(canvas);
     }
 
     // end draw
     final picture = recorder.endRecording();
-    final image = await picture.toImage(canvasSize.width.toInt(), canvasSize.height.toInt());
+    final image = await picture.toImage(
+      canvasSize.width.toInt(),
+      canvasSize.height.toInt(),
+    );
 
     // encode to byte and save png
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     final Uint8List? pngBytes = byteData?.buffer.asUint8List();
     if (pngBytes != null) {
-      await FileSaver.instance.saveFile(
-        name: 'Drawix_${DateTime.now().millisecondsSinceEpoch}',
-        bytes: pngBytes,
-        fileExtension: 'png',
-        mimeType: MimeType.png,
+      // await FileSaver.instance.saveFile(
+      //   name: 'Drawix_${DateTime.now().millisecondsSinceEpoch}',
+      //   bytes: pngBytes,
+      //   fileExtension: 'png',
+      //   mimeType: MimeType.png,
+      // );
+      await FileService.saveAs(
+        pngBytes,
+        defaultName: 'Drawix_${DateTime.now().millisecondsSinceEpoch}.png',
       );
     }
   }

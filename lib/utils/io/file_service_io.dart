@@ -14,12 +14,27 @@ Future<String> saveToPath(Uint8List bytes, String path) async {
 // getDownloadsDirectory() works on Android, iOS, macOS, Windows, and Linux.
 // Falls back to the app documents directory if Downloads is unavailable (e.g.
 // some Linux setups that have no ~/Downloads folder).
-Future<String?> saveFile(Uint8List bytes,
-    {String defaultName = 'drawing.drwx'}) async {
-  final dir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
-  final file = File('${dir.path}/$defaultName');
-  await file.writeAsBytes(bytes, flush: true);
-  return file.path;
+Future<String?> saveFile(
+  Uint8List bytes, {
+  String defaultName = 'drawing.drwx',
+}) async {
+  final extension = defaultName.split('.').last;
+
+  String? outputFile = await FilePicker.platform.saveFile(
+    dialogTitle: 'Save drawing',
+    fileName: defaultName,
+    type: FileType.custom,
+    allowedExtensions: [extension],
+    bytes: bytes,
+  );
+
+  return outputFile;
+
+  // if (outputFile == null) return null;
+
+  // final file = File(outputFile);
+  // await file.writeAsBytes(bytes, flush: true);
+  // return file.path;
 }
 
 // open file
