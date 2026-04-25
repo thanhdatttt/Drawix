@@ -54,14 +54,7 @@ The application supports drawing, coloring, customizing outlines, saving/loading
 
 👉 Demonstration of the application on different platform:
 
-- 📹 Windows Demo:  
-  https://your-demo-video-link
-
-- 📹 Mobile Demo:  
-  https://your-demo-video-link
-
-- 📹 Web Demo:  
-  https://your-demo-video-link
+https://drive.google.com/file/d/131yMMAwBqObtCdx2OM82CUlFSdQ6SRmJ/view?usp=sharing
 
 ---
 
