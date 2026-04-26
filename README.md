@@ -18,6 +18,14 @@ The application supports drawing, coloring, customizing outlines, saving/loading
 
 ---
 
+## 🛠️ Tech stack
+
+- Flutter
+- Dart
+- Custom Binary File Format
+
+---
+
 ## ✨ Features
 
 ### 🖊️ 1. Basic shapes drawing
@@ -54,16 +62,17 @@ The application supports drawing, coloring, customizing outlines, saving/loading
 
 👉 Demonstration of the application on different platform:
 
-https://drive.google.com/file/d/131yMMAwBqObtCdx2OM82CUlFSdQ6SRmJ/view?usp=sharing
+Web demo:
 
----
+https://drive.google.com/file/d/1W-MjGuH8n-bvS7wXF1zAHPRtPXuIreQ4/view?usp=drive_link
 
-## 🛠️ Tech stack
+Window app demo:
 
-- Flutter
-- Dart
-- Custom Binary File Format
-- Cross-platform UI
+https://drive.google.com/file/d/1FAx5v5ODZ3ny-Vz8rKr1X_LLZtDwtnZm/view?usp=drive_link
+
+Mobile demo:
+
+https://drive.google.com/file/d/1JPxzGPvDBcs5XlzT0lZeuaTeP8fDemwQ/view?usp=drive_link
 
 ---
 
@@ -93,8 +102,6 @@ drawix/
 ## 🚀 Run the application
 
 ```bash
-# Clone repository
-git clone https://github.com/thanhdatttt/drawix.git
 
 # Navigate to the app folder.
 cd drawix
